@@ -13,11 +13,11 @@ const { functionSource, signalSharedBuffer, port } = openEvent;
 const function_ = (0, eval)(functionSource) as (...args: any[]) => any;
 const signal = new Int32Array(signalSharedBuffer);
 
-function handleCall({ channel, that, args }: CallMessageData): any {
+function handleCall({ this: that, arguments: args }: CallMessageData): any {
   Promise.resolve(function_.call())
     .then((value) => {
       port.postMessage(
-        { type: "settle", channel, status: "fulfilled", value },
+        { type: "settle", status: "fulfilled", value },
         [value].filter(isTransferable)
       );
       signal[0] = 2;
@@ -25,7 +25,7 @@ function handleCall({ channel, that, args }: CallMessageData): any {
     })
     .catch((reason) => {
       port.postMessage(
-        { type: "settle", channel, status: "rejected", reason },
+        { type: "settle", status: "rejected", reason },
         [reason].filter(isTransferable)
       );
       signal[0] = 2;
